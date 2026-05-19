@@ -13,16 +13,15 @@
         body { 
             margin: 0; background: #fafafa; 
             font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            overflow: hidden; 
-            height: 100vh;
-            height: 100dvh;
-            width: 100vw;
+            overflow: hidden; height: 100vh; width: 100vw;
             user-select: none; -webkit-user-select: none;
-            -moz-user-select: none;     
-            -ms-user-select: none;      
+            -webkit-user-select: none;  /* Safari */
+            -moz-user-select: none;     /* Firefox */
+            -ms-user-select: none;      /* IE10+ */
+            user-select: none;          /* Стандарт */
         }
 
-        /* Панель управления слоями */
+        /* Панель управления слоями (Слева) */
         .sidebar { 
             position: absolute; top: 20px; left: 20px; width: 240px; 
             background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(20px);
@@ -60,7 +59,7 @@
             border-width: 0 2px 2px 0; transform: rotate(45deg);
         }
 
-        /* Информационный блок */
+        /* Информационный блок (Справа) */
         .info-box {
             position: absolute; top: 20px; right: 20px; width: 320px;
             background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
@@ -82,39 +81,36 @@
         .info-box h2 { font-size: 18px; margin: 0 0 8px 0; color: #111; font-weight: 600; }
         .info-box p { font-size: 13px; line-height: 1.6; color: #555; margin: 0; text-align: justify; }
 
-        /* Контейнер карты */
+        /* Контейнер интерактивной карты */
         .map-container {
-            width: 100vw; height: 100vh; height: 100dvh;
-            position: relative; overflow: hidden; background: #fdfdfd;
+            width: 100vw; height: 100vh; position: relative; overflow: hidden; background: #fdfdfd;
         }
 
         svg {
             width: 100%; height: 100%; position: absolute; top: 0; left: 0;
             cursor: grab; -webkit-tap-highlight-color: transparent;
-            touch-action: none; 
+            touch-action: none; /* Отключаем нативный скролл браузера, чтобы работал наш зум */
         }
         svg:active { cursor: grabbing; }
 
-        [data-interactive] { cursor: pointer; transition: var(--transition); pointer-events: all; }
+        [data-interactive] { cursor: pointer; transition: var(--transition); }
         [data-interactive]:hover { opacity: 0.8; }
 
+        /* Эффекты затемнения и подсветки */
         .dimmed { opacity: 0.18 !important; filter: grayscale(80%); }
         .highlight { opacity: 1 !important; stroke: var(--accent) !important; stroke-width: 2.5px !important; }
 
-        /* Для точек метро подсвечиваем заливку */
-        circle.highlight { fill: var(--accent) !important; stroke: #fff !important; }
-
+        /* Скрытие слоев по классам */
         .hide-streets .layer-streets,
         .hide-metro .layer-metro,
         .hide-areas .layer-areas {
             display: none !important;
         }
 
-        /* Адаптив для смартфонов */
+        /* Адаптивность для мобильных телефонов */
         @media (max-width: 767px) {
             .sidebar {
-                top: 10px; left: 10px; right: 10px;
-                width: auto; padding: 12px; box-sizing: border-box;
+                top: 10px; left: 10px; right: 10px; width: auto; padding: 12px; box-sizing: border-box;
                 border-radius: 8px;
             }
             .sidebar h1 { font-size: 13px; margin-bottom: 10px; text-align: center; }
@@ -122,16 +118,12 @@
             .filter-item { font-size: 12px; }
 
             .info-box {
-                top: auto; bottom: 0; right: 0; left: 0;
-                width: 100vw; height: 42vh; 
-                border-radius: 20px 20px 0 0; padding: 20px;
-                box-shadow: 0 -8px 35px rgba(0,0,0,0.12);
-                border-top: 1px solid rgba(0,0,0,0.06);
-                box-sizing: border-box; overflow-y: auto;
+                top: auto; bottom: 0; right: 0; left: 0; width: 100vw; height: 42vh; 
+                border-radius: 20px 20px 0 0; padding: 20px; box-shadow: 0 -8px 35px rgba(0,0,0,0.12);
+                border-top: 1px solid rgba(0,0,0,0.06); box-sizing: border-box; overflow-y: auto;
             }
             .info-image-container {
-                width: 100px; height: 100px; float: left;
-                margin: 0 15px 10px 0; border-radius: 6px;
+                width: 100px; height: 100px; float: left; margin: 0 15px 10px 0; border-radius: 6px;
             }
             .info-box h2 { font-size: 15px; margin-bottom: 4px; }
             .info-box p { font-size: 12px; line-height: 1.5; text-align: left; }
@@ -171,7 +163,7 @@
 
     <div class="map-container">
         <svg id="map-svg" viewBox="0 0 2364 1726" xmlns="http://www.w3.org/2000/svg">
-            <?xml version="1.0" encoding="UTF-8"?>
+           <?xml version="1.0" encoding="UTF-8"?>
 <svg id="Nauka" xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
   <defs>
     <style>
@@ -1315,6 +1307,7 @@
     </div>
 
     <script>
+        // База данных семантического контекста (Твоя оригинальная без изменений)
         const locationData = {
             "alferova": {
                 title: "Сад Жореса Алфёрова",
@@ -1374,68 +1367,44 @@
         const infoText = document.getElementById('info-text');
         const elements = document.querySelectorAll('[data-interactive]');
 
-        // Функция подсветки и вывода инфо
-        function showElementInfo(key) {
-            const data = locationData[key];
-            if (data) {
-                infoImg.src = data.img;
-                infoTitle.textContent = data.title;
-                infoText.textContent = data.text;
-                infoBox.style.display = 'block';
-
-                elements.forEach(item => {
-                    if (item.getAttribute('data-interactive') === key) {
-                        item.classList.remove('dimmed');
-                        item.classList.add('highlight');
-                    } else {
-                        item.classList.add('dimmed');
-                        item.classList.remove('highlight');
-                    }
-                });
-            }
-        }
-
-        // Универсальный обработчик клика по интерактивным элементам карты
+        // ТВОЙ ОРИГИНАЛЬНЫЙ ЦЕЛОСТНЫЙ ИНТЕРАКТИВ (НЕ ИЗМЕНЯЛСЯ)
         elements.forEach(element => {
             element.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // Если мы сдвинули карту в процессе клика больше чем на 6 пикселей — игнорируем, это был сдвиг
-                if (totalMapMoveDistance > 6) return;
                 
+                // Проверка: если карта была сдвинута во время тача больше чем на микро-порог, отменяем вызов карточки
+                if (totalMovedDistance > 5) return;
+
                 const key = element.getAttribute('data-interactive');
-                showElementInfo(key);
+                const data = locationData[key];
+
+                if (data) {
+                    infoImg.src = data.img;
+                    infoTitle.textContent = data.title;
+                    infoText.textContent = data.text;
+                    infoBox.style.display = 'block';
+
+                    elements.forEach(item => {
+                        if (item.getAttribute('data-interactive') === key) {
+                            item.classList.remove('dimmed');
+                            item.classList.add('highlight');
+                        } else {
+                            item.classList.add('dimmed');
+                            item.classList.remove('highlight');
+                        }
+                    });
+                }
             });
         });
 
-        // Клик по свободному месту закрывает карточку
         document.addEventListener('click', (e) => {
             if (e.target.closest('.sidebar') || e.target.closest('.info-box') || e.target.closest('[data-interactive]')) return;
             elements.forEach(el => el.classList.remove('dimmed', 'highlight'));
             infoBox.style.display = 'none';
         });
 
-        function initLayers() {
-            const setupFilter = (checkboxId, bodyClassName) => {
-                const box = document.getElementById(checkboxId);
-                if (box) {
-                    box.addEventListener('change', (e) => {
-                        document.body.classList.toggle(bodyClassName, !e.target.checked);
-                    });
-                    document.body.classList.toggle(bodyClassName, !box.checked);
-                }
-            };
-            setupFilter('check-streets', 'hide-streets');
-            setupFilter('check-metro', 'hide-metro');
-            setupFilter('check-areas', 'hide-areas');
-            
-            applyViewBox();
-        }
-
-        window.addEventListener('DOMContentLoaded', initLayers);
-
-
         // =================================================================
-        // НАДЁЖНЫЙ ДВИЖОК ЖЕСТОВ: СТАНДАРТНЫЙ ПЛАВНЫЙ ЗУМ Х1
+        // НОВЫЙ МОБИЛЬНЫЙ ДВИЖОК: ПЕРЕМЕЩЕНИЕ И ПЛАВНЫЙ ЗУМ (POINTER EVENTS)
         // =================================================================
         const svg = document.getElementById('map-svg'); 
         let viewBox = { x: 0, y: 0, w: 2364, h: 1726 }; 
@@ -1445,7 +1414,7 @@
         let activePointers = []; 
         let isDragging = false;
         let startPoint = { x: 0, y: 0 };
-        let totalMapMoveDistance = 0; // Накопитель расстояния движения, чтобы отделять зум от клика
+        let totalMovedDistance = 0; // Считает пройденный путь пальца, чтобы не путать сдвиг с тапом
 
         let initialPinchDistance = 0;
         let initialViewBoxW = 0;
@@ -1495,7 +1464,7 @@
                 if (activePointers.length === 1) {
                     isDragging = true;
                     startPoint = { x: e.clientX, y: e.clientY };
-                    totalMapMoveDistance = 0; // сброс при новом тапе
+                    totalMovedDistance = 0; // Сброс при новом касании
                 } else if (activePointers.length === 2) {
                     isDragging = false;
                     initialPinchDistance = getDistance(activePointers[0], activePointers[1]);
@@ -1525,8 +1494,8 @@
                     const dx = (e.clientX - startPoint.x) * factorX;
                     const dy = (e.clientY - startPoint.y) * factorY;
 
-                    // Накапливаем пройденный путь пальца
-                    totalMapMoveDistance += Math.hypot(e.clientX - startPoint.x, e.clientY - startPoint.y);
+                    // Накапливаем общее смещение пальца на экране
+                    totalMovedDistance += Math.hypot(e.clientX - startPoint.x, e.clientY - startPoint.y);
 
                     viewBox.x -= dx;
                     viewBox.y -= dy;
@@ -1536,14 +1505,13 @@
                     const currentDistance = getDistance(activePointers[0], activePointers[1]);
                     if (initialPinchDistance === 0) return;
 
-                    // ВЕРНУЛИ КЛАССИЧЕСКИЙ ЗУМ (Чувствительность убрана на стандартную 1.0)
-                    const baseScaleFactor = initialPinchDistance / currentDistance;
-                    const sensitivity = 1.0; 
-                    const scaleFactor = 1 + (baseScaleFactor - 1) * sensitivity;
+                    // Стандартный классический коэффициент изменения масштаба (1.0)
+                    const scaleFactor = initialPinchDistance / currentDistance;
 
                     let newW = initialViewBoxW * scaleFactor;
                     let newH = initialViewBoxH * scaleFactor;
 
+                    // Защитные ограничения зума
                     if (newW < 150) { newW = 150; newH = newW * (initialViewBoxH / initialViewBoxW); }
                     if (newW > baseW * 3) { newW = baseW * 3; newH = newW * (initialViewBoxH / initialViewBoxW); }
 
@@ -1558,7 +1526,7 @@
                     viewBox.y = initialViewBoxCenterY - newH * touchYPercent;
                     updateSVGViewBox();
                     
-                    totalMapMoveDistance = 999; // Если задействованы два пальца, клик блокируется намертво
+                    totalMovedDistance = 999; // Если задействовано 2 пальца, блокируем клик
                 }
             });
 
@@ -1572,7 +1540,7 @@
             svg.addEventListener('pointercancel', stopTracking);
             svg.addEventListener('pointerleave', stopTracking);
 
-            // ДЕСКТОПНЫЙ ЗУМ КОЛЕСИКОМ
+            // ДЕСКТОПНЫЙ ЗУМ КОЛЕСИКОМ (Твой оригинальный)
             svg.addEventListener('wheel', (e) => {
                 if (e.target.closest('.sidebar') || e.target.closest('.info-box')) return;
                 e.preventDefault();
@@ -1593,19 +1561,39 @@
             }, { passive: false });
         }
 
-        // ЗАЩИТА СИСТЕМЫ И ДЕБАГГИНГ
+        // РАБОТА С ФИЛЬТРАМИ СЛОЕВ И ИНИЦИАЛИЗАЦИЯ (Твоя оригинальная)
+        function initLayers() {
+            const setupFilter = (checkboxId, bodyClassName) => {
+                const box = document.getElementById(checkboxId);
+                if (box) {
+                    box.addEventListener('change', (e) => {
+                        document.body.classList.toggle(bodyClassName, !e.target.checked);
+                    });
+                    document.body.classList.toggle(bodyClassName, !box.checked);
+                }
+            };
+            setupFilter('check-streets', 'hide-streets');
+            setupFilter('check-metro', 'hide-metro');
+            setupFilter('check-areas', 'hide-areas');
+            
+            applyViewBox();
+        }
+
+        window.addEventListener('DOMContentLoaded', initLayers);
+
+        // БЛОКИРОВКИ И СИСТЕМА ЗАЩИТЫ КОДА (Твоя оригинальная без изменений)
         document.addEventListener('contextmenu', event => event.preventDefault());
 
         document.addEventListener('keydown', function(event) {
-            if (event.keyCode == 123) { 
+            if (event.keyCode == 123) { // F12
                 event.preventDefault();
                 return false;
             }
-            if (event.ctrlKey && event.shiftKey && (event.keyCode == 73 || event.keyCode == 67)) { 
+            if (event.ctrlKey && event.shiftKey && (event.keyCode == 73 || event.keyCode == 67)) { // Ctrl+Shift+I или Ctrl+Shift+C
                 event.preventDefault();
                 return false;
             }
-            if (event.ctrlKey && event.keyCode == 85) { 
+            if (event.ctrlKey && event.keyCode == 85) { // Ctrl+U
                 event.preventDefault();
                 return false;
             }
