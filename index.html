@@ -1779,14 +1779,14 @@
         if (svg) {
             svg.addEventListener('pointerdown', (e) => {
                 if (e.target.closest('.sidebar') || e.target.closest('.info-box')) return;
-                
+                totalMovedDistance = 0; 
                 activePointers.push(e);
                 svg.setPointerCapture(e.pointerId); 
 
                 if (activePointers.length === 1) {
                     isDragging = true;
                     startPoint = { x: e.clientX, y: e.clientY };
-                    totalMovedDistance = 0; 
+                    
                 } else if (activePointers.length === 2) {
                     isDragging = false;
                     initialPinchDistance = Math.hypot(activePointers[1].clientX - activePointers[0].clientX, activePointers[1].clientY - activePointers[0].clientY);
